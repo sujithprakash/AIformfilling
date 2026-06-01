@@ -123,11 +123,7 @@ SYSTEM_PROMPT = (
 def analyse_uploaded_files(uploaded_files) -> dict:
     """
     Full RAG pipeline over uploaded file objects (werkzeug FileStorage).
-    1. Extract text from each file in memory
-    2. Chunk the combined corpus
-    3. Embed all chunks
-    4. Retrieve top-k chunks most relevant to the extraction query
-    5. LLM structured extraction over retrieved context
+    All exceptions are caught and returned as JSON error messages.
     """
     files_info = []
     combined_text = ""
@@ -135,9 +131,13 @@ def analyse_uploaded_files(uploaded_files) -> dict:
     for f in uploaded_files:
         filename = f.filename
         ext = os.path.splitext(filename)[1].lower()
-        data = f.read()
-        file_text = ""
+        try:
+            data = f.read()
+        except Exception as e:
+            print(f"[READ ERROR] {filename}: {e}")
+            continue
 
+        file_text = ""
         if ext == ".pdf":
             file_text = extract_text_from_pdf_bytes(data)
         elif ext == ".docx":
@@ -162,16 +162,26 @@ def analyse_uploaded_files(uploaded_files) -> dict:
 
     if not combined_text.strip():
         return {
-            "error": "No readable text found in uploaded files. Image-only PDFs require OCR.",
+            "error": "No readable text found in the uploaded files. "
+                     "Make sure at least one file contains selectable text "
+                     "(image-only scanned PDFs require OCR which is not yet supported).",
             "files": files_info,
         }
 
     # Chunk → embed → retrieve
-    chunks = chunk_text(combined_text)
-    print(f"[RAG] {len(chunks)} chunks from {len(combined_text)} chars")
+    try:
+        chunks = chunk_text(combined_text)
+        print(f"[RAG] {len(chunks)} chunks from {len(combined_text)} chars")
+        chunk_vecs = embed_texts(chunks)
+        top_chunks = retrieve_top_chunks(EXTRACTION_QUERY, chunks, chunk_vecs, k=TOP_K)
+    except Exception as e:
+        print(f"[RAG ERROR] {e}")
+        return {
+            "error": f"Embedding/retrieval error: {e}. "
+                     "Check that OPENAI_API_KEY is set correctly in your Render environment variables.",
+            "files": files_info,
+        }
 
-    chunk_vecs = embed_texts(chunks)
-    top_chunks = retrieve_top_chunks(EXTRACTION_QUERY, chunks, chunk_vecs, k=TOP_K)
     context = "\n\n---\n\n".join(top_chunks)
     print(f"[RAG] Retrieved top-{TOP_K} chunks ({len(context)} chars)")
 
@@ -218,6 +228,17 @@ RETRIEVED EXCERPTS:
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/health")
+def health():
+    """Quick diagnostic: confirms server is up and API key is present."""
+    api_key = os.getenv("OPENAI_API_KEY", "")
+    return jsonify({
+        "status": "ok",
+        "api_key_set": bool(api_key),
+        "api_key_preview": (api_key[:8] + "…") if api_key else "NOT SET",
+    })
 
 
 @app.route("/upload-assist", methods=["POST"])
