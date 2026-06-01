@@ -5,56 +5,42 @@
     <title>University Application Form (AI-Assisted)</title>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #f8f9fa;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        fieldset {
-            border: 1px solid #ccc;
-            padding: 20px;
-            background: #fff;
-            margin-bottom: 25px;
-        }
-        legend {
-            padding: 0 10px;
-            font-weight: bold;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            box-sizing: border-box;
-        }
-        .half {
-            width: 48%;
-            display: inline-block;
-        }
-        .note {
-            margin-top: 10px;
-            color: #555;
-            white-space: pre-wrap;
-        }
-        .small-button {
-            margin-top: 12px;
-            padding: 8px 14px;
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; }
+        h1 { margin-bottom: 20px; }
+        fieldset { border: 1px solid #ccc; padding: 20px; background: #fff; margin-bottom: 25px; }
+        legend { padding: 0 10px; font-weight: bold; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        .half { width: 48%; display: inline-block; }
+        .note { margin-top: 10px; color: #555; white-space: pre-wrap; }
+        .small-button { margin-top: 12px; padding: 8px 14px; cursor: pointer; }
+        #ai-output { border: 1px dashed #666; background: #eef2f7; padding: 10px; min-height: 80px; font-size: 0.9em; }
+
+        /* Upload zone */
+        #drop-zone {
+            border: 2px dashed #1a56a0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
             cursor: pointer;
+            background: #f0f4ff;
+            transition: background 0.2s;
         }
-        #ai-output {
-            border: 1px dashed #666;
-            background: #eef2f7;
-            padding: 10px;
-            min-height: 80px;
-            font-size: 0.9em;
+        #drop-zone.dragover { background: #d8e6ff; }
+        #drop-zone input[type=file] { display: none; }
+        #file-list { margin-top: 12px; font-size: 0.88em; color: #333; }
+        #file-list li { list-style: none; padding: 2px 0; }
+        .upload-btn {
+            margin-top: 14px;
+            padding: 10px 24px;
+            background: #1a56a0;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
         }
+        .upload-btn:disabled { background: #888; cursor: not-allowed; }
     </style>
 </head>
 
@@ -64,25 +50,30 @@
 <p>This form can be auto-filled from a folder containing the applicant’s CV and scanned academic certificates.</p>
 
 <!-- ================================
-     STEP 1 — FOLDER SCAN
+     STEP 1 — FILE UPLOAD
 ================================ -->
 <fieldset>
-    <legend>Step 1 — Scan Student Folder (CV + Certificates)</legend>
+    <legend>Step 1 — Upload CV &amp; Certificates</legend>
 
-    <label for="folder-path">Student Folder Path on This Computer</label>
-    <input id="folder-path" placeholder="E.g. D:\Students\Sujith01" />
+    <div id="drop-zone">
+        <input type="file" id="file-input" multiple accept=".pdf,.docx,.txt" />
+        <div style="font-size:1.1em; color:#1a56a0;">&#8593; Click to select files or drag &amp; drop here</div>
+        <div style="margin-top:6px; font-size:0.85em; color:#555;">Accepted formats: PDF, DOCX, TXT &nbsp;·&nbsp; Max 32 MB total</div>
+    </div>
 
-    <button type="button" id="folder-fill-button" class="small-button">
-        Scan Folder & Auto-Fill Form
+    <ul id="file-list"></ul>
+
+    <button type="button" id="upload-button" class="upload-btn" disabled>
+        Analyse &amp; Auto-Fill Form
     </button>
 
     <div id="folder-status" class="note"></div>
     <div id="folder-metrics" class="note"></div>
     <pre id="folder-files" class="note"></pre>
 
-    <p class="note">
-        The system reads all PDF, DOCX and TXT files in the folder, builds a semantic index,
-        retrieves the most relevant passages, and asks the AI to extract details.
+    <p class="note" style="margin-top:14px;">
+        The system reads all uploaded files, builds a semantic index, retrieves the most
+        relevant passages, and asks the AI to extract details.
         Image-only scanned PDFs cannot be read without OCR — they will be flagged below.
     </p>
 
@@ -287,150 +278,153 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-    // Folder scan elements
-    const folderPathInput = document.getElementById("folder-path");
-    const folderFillButton = document.getElementById("folder-fill-button");
-    const folderStatus = document.getElementById("folder-status");
+    // Upload elements
+    const dropZone     = document.getElementById("drop-zone");
+    const fileInput    = document.getElementById("file-input");
+    const fileList     = document.getElementById("file-list");
+    const uploadButton = document.getElementById("upload-button");
+    const folderStatus  = document.getElementById("folder-status");
     const folderMetrics = document.getElementById("folder-metrics");
-    const folderFiles = document.getElementById("folder-files");
+    const folderFiles   = document.getElementById("folder-files");
 
-    // Form fields
-    const nameInput = document.getElementById("name");
-    const dobInput = document.getElementById("dob");
-    const nationalityInput = document.getElementById("nationality");
-    const emailInput = document.getElementById("email");
-    const phoneInput = document.getElementById("phone");
-    const addressLine1Input = document.getElementById("address-line1");
-    const addressLine2Input = document.getElementById("address-line2");
-    const cityInput = document.getElementById("city");
-    const stateInput = document.getElementById("state");
-    const countryInput = document.getElementById("country");
-    const preferredContactInput = document.getElementById("preferred-contact");
+    let selectedFiles = [];
 
-    const levelOfStudyInput = document.getElementById("level-of-study");
-    const programmeInput = document.getElementById("programme");
-    const studyModeInput = document.getElementById("study-mode");
-    const intakeInput = document.getElementById("intake");
+    // Click anywhere in drop zone to open picker
+    dropZone.addEventListener("click", () => fileInput.click());
 
-    const highestQualificationInput = document.getElementById("highest-qualification");
-    const highestInstitutionInput = document.getElementById("highest-institution");
-    const fieldOfStudyInput = document.getElementById("field-of-study");
-    const graduationYearInput = document.getElementById("graduation-year");
-    const gradeInput = document.getElementById("grade");
-    const otherQualificationsInput = document.getElementById("other-qualifications");
+    // Drag-and-drop
+    dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+    dropZone.addEventListener("drop", e => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        addFiles(Array.from(e.dataTransfer.files));
+    });
 
-    const totalExperienceInput = document.getElementById("total-experience");
-    const currentEmployerInput = document.getElementById("current-employer");
-    const currentPositionInput = document.getElementById("current-position");
-    const industryInput = document.getElementById("industry");
-    const experienceSummaryInput = document.getElementById("experience-summary");
+    fileInput.addEventListener("change", () => addFiles(Array.from(fileInput.files)));
 
-    const detailsTextarea = document.getElementById("details");
-    const finalNotesTextarea = document.getElementById("final-notes");
+    function addFiles(newFiles) {
+        newFiles.forEach(f => {
+            if (!selectedFiles.find(x => x.name === f.name)) selectedFiles.push(f);
+        });
+        renderFileList();
+        uploadButton.disabled = selectedFiles.length === 0;
+    }
 
-    const aiButton = document.getElementById("ai-button");
-    const aiStatus = document.getElementById("ai-status");
-    const aiOutput = document.getElementById("ai-output");
-    const copyButton = document.getElementById("copy-button");
+    function renderFileList() {
+        fileList.innerHTML = selectedFiles.map((f, i) =>
+            `<li>📄 ${f.name} <span style="color:#888">(${(f.size/1024).toFixed(1)} KB)</span>
+             <a href="#" style="color:red;margin-left:8px;font-size:0.8em;" data-i="${i}">remove</a></li>`
+        ).join("");
+        fileList.querySelectorAll("a[data-i]").forEach(a =>
+            a.addEventListener("click", e => {
+                e.preventDefault();
+                selectedFiles.splice(+a.dataset.i, 1);
+                renderFileList();
+                uploadButton.disabled = selectedFiles.length === 0;
+            })
+        );
+    }
 
     // ============================
-    // Folder Scan Handler
+    // Upload & analyse handler
     // ============================
-    folderFillButton.addEventListener("click", async () => {
-        const folderPath = folderPathInput.value.trim();
-        console.log("Scanning:", folderPath);
+    uploadButton.addEventListener("click", async () => {
+        if (selectedFiles.length === 0) return;
 
-        folderStatus.textContent = "Scanning folder and contacting AI...";
+        uploadButton.disabled = true;
+        uploadButton.textContent = "Analysing…";
+        folderStatus.textContent = "Uploading files and running AI extraction…";
         folderMetrics.textContent = "";
         folderFiles.textContent = "";
 
-        const response = await fetch("/folder-assist", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ folder_path: folderPath })
-        });
+        const formData = new FormData();
+        selectedFiles.forEach(f => formData.append("files", f));
 
-        const data = await response.json();
-        console.log("Folder-assist:", data);
+        try {
+            const response = await fetch("/upload-assist", { method: "POST", body: formData });
+            const data = await response.json();
 
-        if (data.error) {
-            folderStatus.textContent = "Error: " + data.error;
-        } else {
-            folderStatus.textContent = "Form updated from folder contents.";
-        }
+            if (data.error) {
+                folderStatus.textContent = "Error: " + data.error;
+            } else {
+                folderStatus.textContent = "✓ Form auto-filled from uploaded documents. Review and correct as needed.";
+            }
 
-        if (data.elapsed_seconds) {
-            folderMetrics.textContent = "Execution time: " +
-                data.elapsed_seconds.toFixed(2) + " seconds";
-        }
+            if (data.elapsed_seconds) {
+                folderMetrics.textContent = `Processing time: ${data.elapsed_seconds.toFixed(2)} seconds`;
+            }
 
-        if (Array.isArray(data.files)) {
-            folderFiles.textContent = "Files scanned:\n" +
-                data.files.map(f =>
-                    `• ${f.filename} (${f.extension}, ` +
-                    (f.had_text ? `${f.chars} chars` : "no text") +
-                    `)`
+            if (Array.isArray(data.files)) {
+                folderFiles.textContent = "Files processed:\n" + data.files.map(f =>
+                    `• ${f.filename}  —  ` + (f.had_text ? `${f.chars} chars extracted` : "⚠ no text (image-only PDF?)")
                 ).join("\n");
-        }
+            }
 
-        if (data.name) nameInput.value = data.name;
-        if (data.date_of_birth) dobInput.value = data.date_of_birth;
-        if (data.nationality) nationalityInput.value = data.nationality;
-        if (data.email) emailInput.value = data.email;
-        if (data.phone) phoneInput.value = data.phone;
-        if (data.address_line1) addressLine1Input.value = data.address_line1;
-        if (data.address_line2) addressLine2Input.value = data.address_line2;
-        if (data.city) cityInput.value = data.city;
-        if (data.state_region) stateInput.value = data.state_region;
-        if (data.country) countryInput.value = data.country;
-        if (data.preferred_contact) preferredContactInput.value = data.preferred_contact;
+            const fill = (id, val) => { if (val) document.getElementById(id).value = val; };
+            fill("name",                   data.name);
+            fill("dob",                    data.date_of_birth);
+            fill("nationality",            data.nationality);
+            fill("email",                  data.email);
+            fill("phone",                  data.phone);
+            fill("address-line1",          data.address_line1);
+            fill("address-line2",          data.address_line2);
+            fill("city",                   data.city);
+            fill("state",                  data.state_region);
+            fill("country",                data.country);
+            fill("preferred-contact",      data.preferred_contact);
+            fill("level-of-study",         data.level_of_study);
+            fill("programme",              data.programme_interest);
+            fill("study-mode",             data.study_mode);
+            fill("intake",                 data.intake);
+            fill("highest-qualification",  data.highest_qualification);
+            fill("highest-institution",    data.highest_institution);
+            fill("field-of-study",         data.field_of_study);
+            fill("graduation-year",        data.graduation_year);
+            fill("grade",                  data.grade);
+            fill("other-qualifications",   data.other_qualifications);
+            fill("total-experience",       data.total_experience);
+            fill("current-employer",       data.current_employer);
+            fill("current-position",       data.current_position);
+            fill("industry",               data.industry);
+            fill("experience-summary",     data.experience_summary);
+            fill("details",                data.background_statement);
+            fill("final-notes",            data.ai_notes);
 
-        if (data.level_of_study) levelOfStudyInput.value = data.level_of_study;
-        if (data.programme_interest) programmeInput.value = data.programme_interest;
-        if (data.study_mode) studyModeInput.value = data.study_mode;
-        if (data.intake) intakeInput.value = data.intake;
+            // Evidence panel
+            const evidencePanel = document.getElementById("evidence-panel");
+            const chunksDiv     = document.getElementById("retrieved-chunks");
+            if (Array.isArray(data.retrieved_chunks) && data.retrieved_chunks.length > 0) {
+                chunksDiv.innerHTML = data.retrieved_chunks.map((chunk, i) =>
+                    `<div style="background:#f0f4ff;border-left:3px solid #1a56a0;padding:8px 12px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace;">` +
+                    `<strong>Passage ${i+1}</strong>\n${chunk}</div>`
+                ).join("");
+                evidencePanel.style.display = "block";
+            }
 
-        if (data.highest_qualification) highestQualificationInput.value = data.highest_qualification;
-        if (data.highest_institution) highestInstitutionInput.value = data.highest_institution;
-        if (data.field_of_study) fieldOfStudyInput.value = data.field_of_study;
-        if (data.graduation_year) graduationYearInput.value = data.graduation_year;
-        if (data.grade) gradeInput.value = data.grade;
-        if (data.other_qualifications) otherQualificationsInput.value = data.other_qualifications;
-
-        if (data.total_experience) totalExperienceInput.value = data.total_experience;
-        if (data.current_employer) currentEmployerInput.value = data.current_employer;
-        if (data.current_position) currentPositionInput.value = data.current_position;
-        if (data.industry) industryInput.value = data.industry;
-        if (data.experience_summary) experienceSummaryInput.value = data.experience_summary;
-
-        if (data.background_statement) detailsTextarea.value = data.background_statement;
-        if (data.ai_notes) finalNotesTextarea.value = data.ai_notes;
-
-        // Show retrieved evidence chunks
-        const evidencePanel = document.getElementById("evidence-panel");
-        const chunksDiv = document.getElementById("retrieved-chunks");
-        if (Array.isArray(data.retrieved_chunks) && data.retrieved_chunks.length > 0) {
-            chunksDiv.innerHTML = data.retrieved_chunks.map((chunk, i) =>
-                `<div style="background:#f0f4ff;border-left:3px solid #1a56a0;padding:8px 12px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace;">`+
-                `<strong>Chunk ${i+1}</strong>\n${chunk}</div>`
-            ).join("");
-            evidencePanel.style.display = "block";
-        } else {
-            evidencePanel.style.display = "none";
+        } catch (err) {
+            folderStatus.textContent = "Network error: " + err.message;
+        } finally {
+            uploadButton.disabled = false;
+            uploadButton.textContent = "Analyse & Auto-Fill Form";
         }
     });
 
     // ============================
     // AI Rewriting Tool
     // ============================
+    const detailsTextarea  = document.getElementById("details");
+    const finalNotesTextarea = document.getElementById("final-notes");
+    const aiButton  = document.getElementById("ai-button");
+    const aiStatus  = document.getElementById("ai-status");
+    const aiOutput  = document.getElementById("ai-output");
+    const copyButton = document.getElementById("copy-button");
+
     aiButton.addEventListener("click", async () => {
         const text = detailsTextarea.value.trim();
-        if (!text) {
-            aiStatus.textContent = "Please enter text first.";
-            return;
-        }
+        if (!text) { aiStatus.textContent = "Please enter text first."; return; }
 
-        aiStatus.textContent = "Contacting AI...";
+        aiStatus.textContent = "Contacting AI…";
         aiOutput.textContent = "";
 
         const response = await fetch("/ai-assist", {
@@ -438,7 +432,6 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ raw_text: text })
         });
-
         const data = await response.json();
         aiOutput.textContent = data.improved_text || "";
         aiStatus.textContent = "AI rewrite ready.";
