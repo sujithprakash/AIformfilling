@@ -2,341 +2,708 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>University Application Form (AI-Assisted)</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI-Assisted University Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; }
-        h1 { margin-bottom: 20px; }
-        fieldset { border: 1px solid #ccc; padding: 20px; background: #fff; margin-bottom: 25px; }
-        legend { padding: 0 10px; font-weight: bold; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-        .half { width: 48%; display: inline-block; }
-        .note { margin-top: 10px; color: #555; white-space: pre-wrap; }
-        .small-button { margin-top: 12px; padding: 8px 14px; cursor: pointer; }
-        #ai-output { border: 1px dashed #666; background: #eef2f7; padding: 10px; min-height: 80px; font-size: 0.9em; }
+        /* ── Reset & base ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Upload zone */
-        #drop-zone {
-            border: 2px dashed #1a56a0;
+        :root {
+            --navy:   #1e3a5f;
+            --blue:   #2563eb;
+            --blue-lt:#eff6ff;
+            --teal:   #0d9488;
+            --teal-lt:#f0fdfa;
+            --amber:  #d97706;
+            --amber-lt:#fffbeb;
+            --red:    #dc2626;
+            --red-lt: #fef2f2;
+            --green:  #16a34a;
+            --green-lt:#f0fdf4;
+            --grey-50:#f8fafc;
+            --grey-100:#f1f5f9;
+            --grey-200:#e2e8f0;
+            --grey-400:#94a3b8;
+            --grey-600:#475569;
+            --grey-800:#1e293b;
+            --radius: 10px;
+            --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--grey-100);
+            color: var(--grey-800);
+            min-height: 100vh;
+        }
+
+        /* ── Top header bar ── */
+        .site-header {
+            background: linear-gradient(135deg, var(--navy) 0%, #2563eb 100%);
+            color: #fff;
+            padding: 20px 40px 24px;
+        }
+        .site-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -.3px;
+        }
+        .site-header p {
+            margin-top: 4px;
+            font-size: .88rem;
+            opacity: .8;
+        }
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: .75rem;
+            margin-top: 10px;
+        }
+
+        /* ── Page layout ── */
+        .page { max-width: 880px; margin: 32px auto; padding: 0 20px 60px; }
+
+        /* ── Section cards ── */
+        .card {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--grey-200);
+        }
+        .card-header .icon {
+            width: 32px; height: 32px;
             border-radius: 8px;
-            padding: 30px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .card-header h2 {
+            font-size: .95rem;
+            font-weight: 600;
+            color: var(--grey-800);
+        }
+        .card-header .step-badge {
+            margin-left: auto;
+            background: var(--blue-lt);
+            color: var(--blue);
+            font-size: .72rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .card-body { padding: 20px; }
+
+        /* Card colour themes */
+        .theme-blue  .card-header { background: var(--blue-lt); }
+        .theme-blue  .card-header .icon { background: var(--blue); color: #fff; }
+        .theme-teal  .card-header { background: var(--teal-lt); }
+        .theme-teal  .card-header .icon { background: var(--teal); color: #fff; }
+        .theme-navy  .card-header { background: #eef2ff; }
+        .theme-navy  .card-header .icon { background: var(--navy); color: #fff; }
+        .theme-amber .card-header { background: var(--amber-lt); }
+        .theme-amber .card-header .icon { background: var(--amber); color: #fff; }
+
+        /* ── Form grid ── */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-grid .full { grid-column: 1 / -1; }
+
+        label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--grey-600);
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin-bottom: 5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1.5px solid var(--grey-200);
+            border-radius: 7px;
+            font-family: inherit;
+            font-size: .9rem;
+            color: var(--grey-800);
+            background: var(--grey-50);
+            transition: border-color .15s, box-shadow .15s;
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+            background: #fff;
+        }
+        textarea { resize: vertical; }
+
+        /* ── Upload zone ── */
+        #drop-zone {
+            border: 2px dashed var(--blue);
+            border-radius: var(--radius);
+            padding: 32px 20px;
             text-align: center;
             cursor: pointer;
-            background: #f0f4ff;
-            transition: background 0.2s;
+            background: var(--blue-lt);
+            transition: background .2s, border-color .2s;
         }
-        #drop-zone.dragover { background: #d8e6ff; }
+        #drop-zone:hover, #drop-zone.dragover {
+            background: #dbeafe;
+            border-color: #1d4ed8;
+        }
         #drop-zone input[type=file] { display: none; }
-        #file-list { margin-top: 12px; font-size: 0.88em; color: #333; }
-        #file-list li { list-style: none; padding: 2px 0; }
-        .upload-btn {
-            margin-top: 14px;
-            padding: 10px 24px;
-            background: #1a56a0;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
+        .drop-icon { font-size: 2.2rem; margin-bottom: 8px; }
+        .drop-title { font-size: 1rem; font-weight: 600; color: var(--blue); }
+        .drop-hint  { font-size: .8rem; color: var(--grey-600); margin-top: 4px; }
+
+        /* File chips */
+        #file-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .file-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #fff; border: 1px solid var(--grey-200);
+            border-radius: 20px; padding: 4px 10px 4px 8px;
+            font-size: .8rem; color: var(--grey-800);
         }
-        .upload-btn:disabled { background: #888; cursor: not-allowed; }
+        .file-chip .remove {
+            color: var(--grey-400); cursor: pointer; font-size: 1rem; line-height: 1;
+            background: none; border: none; padding: 0;
+        }
+        .file-chip .remove:hover { color: var(--red); }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 20px; border: none; border-radius: 7px;
+            font-family: inherit; font-size: .9rem; font-weight: 600;
+            cursor: pointer; transition: opacity .15s, transform .1s;
+        }
+        .btn:active { transform: scale(.98); }
+        .btn-primary { background: var(--blue); color: #fff; }
+        .btn-primary:hover { opacity: .9; }
+        .btn-primary:disabled { background: var(--grey-400); cursor: not-allowed; transform: none; }
+        .btn-teal { background: var(--teal); color: #fff; }
+        .btn-teal:hover { opacity: .9; }
+        .btn-outline {
+            background: #fff; color: var(--grey-600);
+            border: 1.5px solid var(--grey-200);
+        }
+        .btn-outline:hover { border-color: var(--grey-400); }
+
+        /* ── Status banners ── */
+        .status-box {
+            display: none; align-items: flex-start; gap: 10px;
+            padding: 12px 14px; border-radius: 8px;
+            font-size: .85rem; margin-top: 14px;
+        }
+        .status-box.show { display: flex; }
+        .status-box.info    { background: var(--blue-lt);  color: #1e40af; border: 1px solid #bfdbfe; }
+        .status-box.success { background: var(--green-lt); color: #14532d; border: 1px solid #bbf7d0; }
+        .status-box.error   { background: var(--red-lt);   color: #7f1d1d; border: 1px solid #fecaca; }
+        .status-box.warning { background: var(--amber-lt); color: #78350f; border: 1px solid #fde68a; }
+
+        /* ── Progress bar ── */
+        .progress-wrap { margin-top: 14px; display: none; }
+        .progress-wrap.show { display: block; }
+        .progress-label { font-size: .78rem; color: var(--grey-600); margin-bottom: 5px; }
+        .progress-bar { height: 6px; background: var(--grey-200); border-radius: 3px; overflow: hidden; }
+        .progress-fill {
+            height: 100%; width: 0%; background: var(--blue);
+            border-radius: 3px; transition: width .4s ease;
+            animation: pulse-bar 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-bar {
+            0%,100% { opacity: 1; } 50% { opacity: .6; }
+        }
+
+        /* ── File stats ── */
+        .file-stats { margin-top: 14px; display: none; }
+        .file-stats.show { display: block; }
+        .file-stat-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 0; border-bottom: 1px solid var(--grey-100);
+            font-size: .82rem;
+        }
+        .file-stat-row:last-child { border-bottom: none; }
+        .stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .stat-dot.ok  { background: var(--green); }
+        .stat-dot.warn { background: var(--amber); }
+        .stat-name { flex: 1; color: var(--grey-800); font-weight: 500; }
+        .stat-info { color: var(--grey-400); }
+
+        /* ── AI rewrite output ── */
+        #ai-output {
+            border: 1.5px solid var(--grey-200);
+            background: var(--teal-lt);
+            border-left: 4px solid var(--teal);
+            border-radius: 7px;
+            padding: 12px 14px;
+            min-height: 80px;
+            font-size: .88rem;
+            line-height: 1.6;
+            color: var(--grey-800);
+            white-space: pre-wrap;
+        }
+
+        /* ── Evidence panel ── */
+        #evidence-panel { margin-top: 16px; display: none; }
+        #evidence-panel summary {
+            cursor: pointer; font-size: .82rem; font-weight: 600;
+            color: var(--blue); padding: 8px 0;
+        }
+        .chunk-card {
+            background: var(--grey-50);
+            border: 1px solid var(--grey-200);
+            border-left: 3px solid var(--blue);
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            font-size: .78rem;
+            font-family: 'Courier New', monospace;
+            color: var(--grey-600);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        .chunk-label {
+            font-family: 'Inter', sans-serif;
+            font-size: .72rem; font-weight: 700;
+            color: var(--blue); margin-bottom: 4px;
+            text-transform: uppercase; letter-spacing: .5px;
+        }
+
+        /* ── Metrics pill ── */
+        .metrics-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .metric-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: var(--grey-100); border: 1px solid var(--grey-200);
+            border-radius: 20px; padding: 3px 10px;
+            font-size: .75rem; color: var(--grey-600);
+        }
+        .metric-pill strong { color: var(--grey-800); }
+
+        /* ── Divider ── */
+        .section-divider {
+            display: flex; align-items: center; gap: 10px;
+            font-size: .75rem; font-weight: 600; color: var(--grey-400);
+            text-transform: uppercase; letter-spacing: .5px;
+            margin: 8px 0 16px;
+        }
+        .section-divider::before, .section-divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--grey-200);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .page { padding: 0 12px 40px; }
+            .site-header { padding: 16px 20px 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-grid .full { grid-column: 1; }
+        }
     </style>
 </head>
 
 <body>
 
-<h1>University Application Form (AI-Assisted)</h1>
-<p>This form can be auto-filled from a folder containing the applicant’s CV and scanned academic certificates.</p>
+<!-- ── Header ── -->
+<header class="site-header">
+    <h1>AI-Assisted University Application Form</h1>
+    <p>Upload applicant documents and let AI extract key details automatically.</p>
+    <span class="header-badge">✦ RAG-Powered Extraction</span>
+</header>
 
-<!-- ================================
-     STEP 1 — FILE UPLOAD
-================================ -->
-<fieldset>
-    <legend>Step 1 — Upload CV &amp; Certificates</legend>
+<main class="page">
 
-    <div id="drop-zone">
-        <input type="file" id="file-input" multiple accept=".pdf,.docx,.txt" />
-        <div style="font-size:1.1em; color:#1a56a0;">&#8593; Click to select files or drag &amp; drop here</div>
-        <div style="margin-top:6px; font-size:0.85em; color:#555;">Accepted formats: PDF, DOCX, TXT &nbsp;·&nbsp; Max 32 MB total</div>
+<!-- ══════════════════════════════════
+     STEP 1 — UPLOAD
+══════════════════════════════════ -->
+<div class="card theme-blue">
+    <div class="card-header">
+        <div class="icon">📂</div>
+        <h2>Upload CV &amp; Certificates</h2>
+        <span class="step-badge">Step 1</span>
     </div>
+    <div class="card-body">
 
-    <ul id="file-list"></ul>
+        <div id="drop-zone">
+            <input type="file" id="file-input" multiple accept=".pdf,.docx,.txt" />
+            <div class="drop-icon">☁️</div>
+            <div class="drop-title">Click to browse or drag &amp; drop files here</div>
+            <div class="drop-hint">PDF · DOCX · TXT &nbsp;·&nbsp; Up to 32 MB total</div>
+        </div>
 
-    <button type="button" id="upload-button" class="upload-btn" disabled>
-        Analyse &amp; Auto-Fill Form
-    </button>
+        <div id="file-list"></div>
 
-    <div id="folder-status" class="note"></div>
-    <div id="folder-metrics" class="note"></div>
-    <pre id="folder-files" class="note"></pre>
+        <div style="margin-top:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button type="button" id="upload-button" class="btn btn-primary" disabled>
+                ✦ Analyse &amp; Auto-Fill Form
+            </button>
+            <button type="button" id="clear-button" class="btn btn-outline" style="display:none;">
+                ✕ Clear files
+            </button>
+        </div>
 
-    <p class="note" style="margin-top:14px;">
-        The system reads all uploaded files, builds a semantic index, retrieves the most
-        relevant passages, and asks the AI to extract details.
-        Image-only scanned PDFs cannot be read without OCR — they will be flagged below.
-    </p>
+        <div class="progress-wrap" id="progress-wrap">
+            <div class="progress-label" id="progress-label">Building semantic index…</div>
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        </div>
 
-    <details id="evidence-panel" style="margin-top:15px; display:none;">
-        <summary style="cursor:pointer; font-weight:bold; color:#1a56a0;">
-            View retrieved document passages (RAG evidence)
-        </summary>
-        <div id="retrieved-chunks" style="margin-top:10px;"></div>
-    </details>
-</fieldset>
+        <div id="status-box" class="status-box"></div>
 
-<!-- ================================
+        <div class="metrics-row" id="metrics-row"></div>
+
+        <div class="file-stats" id="file-stats"></div>
+
+        <details id="evidence-panel">
+            <summary>▸ View retrieved document passages (RAG evidence)</summary>
+            <div id="retrieved-chunks"></div>
+        </details>
+
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
      PERSONAL DETAILS
-================================ -->
-<fieldset>
-    <legend>Personal Details</legend>
-
-    <div class="half">
-        <label>Full Name</label>
-        <input id="name" />
+══════════════════════════════════ -->
+<div class="card theme-navy">
+    <div class="card-header">
+        <div class="icon">👤</div>
+        <h2>Personal Details</h2>
     </div>
-
-    <div class="half">
-        <label>Date of Birth</label>
-        <input id="dob" type="date" />
+    <div class="card-body">
+        <div class="form-grid">
+            <div>
+                <label>Full Name</label>
+                <input id="name" placeholder="e.g. Sarah Al-Mansouri" />
+            </div>
+            <div>
+                <label>Date of Birth</label>
+                <input id="dob" type="date" />
+            </div>
+            <div>
+                <label>Gender</label>
+                <select id="gender">
+                    <option value="">Please select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div>
+                <label>Nationality</label>
+                <input id="nationality" placeholder="e.g. Emirati" />
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="half">
-        <label>Gender</label>
-        <select id="gender">
-            <option value="">Please select</option>
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
-        </select>
-    </div>
-
-    <div class="half">
-        <label>Nationality</label>
-        <input id="nationality" />
-    </div>
-</fieldset>
-
-<!-- ================================
+<!-- ══════════════════════════════════
      CONTACT DETAILS
-================================ -->
-<fieldset>
-    <legend>Contact Details</legend>
-
-    <div class="half">
-        <label>Email</label>
-        <input id="email" />
+══════════════════════════════════ -->
+<div class="card theme-navy">
+    <div class="card-header">
+        <div class="icon">📬</div>
+        <h2>Contact Details</h2>
     </div>
-
-    <div class="half">
-        <label>Mobile / Phone</label>
-        <input id="phone" />
+    <div class="card-body">
+        <div class="form-grid">
+            <div>
+                <label>Email Address</label>
+                <input id="email" type="email" placeholder="applicant@email.com" />
+            </div>
+            <div>
+                <label>Mobile / Phone</label>
+                <input id="phone" placeholder="+971 50 000 0000" />
+            </div>
+            <div class="full">
+                <label>Address Line 1</label>
+                <input id="address-line1" placeholder="Apartment / building / street" />
+            </div>
+            <div class="full">
+                <label>Address Line 2 <span style="font-weight:400;text-transform:none;color:var(--grey-400)">(optional)</span></label>
+                <input id="address-line2" placeholder="Area / district" />
+            </div>
+            <div>
+                <label>City</label>
+                <input id="city" placeholder="Dubai" />
+            </div>
+            <div>
+                <label>State / Emirate / Region</label>
+                <input id="state" />
+            </div>
+            <div>
+                <label>Country of Residence</label>
+                <input id="country" placeholder="UAE" />
+            </div>
+            <div>
+                <label>Preferred Contact Method</label>
+                <select id="preferred-contact">
+                    <option value="">Please select</option>
+                    <option>Email</option>
+                    <option>Phone</option>
+                    <option>WhatsApp</option>
+                </select>
+            </div>
+        </div>
     </div>
+</div>
 
-    <label>Address Line 1</label>
-    <input id="address-line1" />
-
-    <label>Address Line 2 (optional)</label>
-    <input id="address-line2" />
-
-    <div class="half">
-        <label>City</label>
-        <input id="city" />
-    </div>
-
-    <div class="half">
-        <label>State / Emirate / Region</label>
-        <input id="state" />
-    </div>
-
-    <div class="half">
-        <label>Country of Residence</label>
-        <input id="country" />
-    </div>
-
-    <div class="half">
-        <label>Preferred Contact Method</label>
-        <select id="preferred-contact">
-            <option value="">Please select</option>
-            <option>Email</option>
-            <option>Phone</option>
-            <option>WhatsApp</option>
-        </select>
-    </div>
-</fieldset>
-
-<!-- ================================
+<!-- ══════════════════════════════════
      PROGRAMME CHOICE
-================================ -->
-<fieldset>
-    <legend>Programme Choice</legend>
-
-    <div class="half">
-        <label>Level of Study</label>
-        <input id="level-of-study" />
+══════════════════════════════════ -->
+<div class="card theme-teal">
+    <div class="card-header">
+        <div class="icon">🎓</div>
+        <h2>Programme Choice</h2>
     </div>
-
-    <div class="half">
-        <label>Programme</label>
-        <input id="programme" />
+    <div class="card-body">
+        <div class="form-grid">
+            <div>
+                <label>Level of Study</label>
+                <input id="level-of-study" placeholder="e.g. Postgraduate" />
+            </div>
+            <div>
+                <label>Programme</label>
+                <input id="programme" placeholder="e.g. MBA" />
+            </div>
+            <div>
+                <label>Preferred Study Mode</label>
+                <input id="study-mode" placeholder="Full-time / Part-time / Online" />
+            </div>
+            <div>
+                <label>Preferred Intake</label>
+                <input id="intake" placeholder="e.g. September 2025" />
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="half">
-        <label>Preferred Study Mode</label>
-        <input id="study-mode" />
-    </div>
-
-    <div class="half">
-        <label>Preferred Intake</label>
-        <input id="intake" />
-    </div>
-</fieldset>
-
-<!-- ================================
+<!-- ══════════════════════════════════
      QUALIFICATIONS
-================================ -->
-<fieldset>
-    <legend>Educational Qualifications</legend>
-
-    <label>Highest Qualification</label>
-    <input id="highest-qualification" />
-
-    <label>University / Institution</label>
-    <input id="highest-institution" />
-
-    <label>Field of Study</label>
-    <input id="field-of-study" />
-
-    <div class="half">
-        <label>Graduation Year</label>
-        <input id="graduation-year" />
+══════════════════════════════════ -->
+<div class="card theme-teal">
+    <div class="card-header">
+        <div class="icon">📜</div>
+        <h2>Educational Qualifications</h2>
     </div>
-
-    <div class="half">
-        <label>Grade / Classification</label>
-        <input id="grade" />
+    <div class="card-body">
+        <div class="form-grid">
+            <div>
+                <label>Highest Qualification</label>
+                <input id="highest-qualification" placeholder="e.g. MSc Computer Science" />
+            </div>
+            <div>
+                <label>University / Institution</label>
+                <input id="highest-institution" />
+            </div>
+            <div>
+                <label>Field of Study</label>
+                <input id="field-of-study" />
+            </div>
+            <div>
+                <label>Graduation Year</label>
+                <input id="graduation-year" placeholder="e.g. 2022" />
+            </div>
+            <div>
+                <label>Grade / Classification</label>
+                <input id="grade" placeholder="e.g. First Class / 3.8 GPA" />
+            </div>
+            <div class="full">
+                <label>Other Qualifications</label>
+                <textarea id="other-qualifications" rows="2" placeholder="Diplomas, certificates, professional qualifications…"></textarea>
+            </div>
+        </div>
     </div>
+</div>
 
-    <label>Other Qualifications</label>
-    <textarea id="other-qualifications" rows="2"></textarea>
-</fieldset>
-
-<!-- ================================
-     EXPERIENCE
-================================ -->
-<fieldset>
-    <legend>Work Experience</legend>
-
-    <div class="half">
-        <label>Total Years of Experience</label>
-        <input id="total-experience" />
+<!-- ══════════════════════════════════
+     WORK EXPERIENCE
+══════════════════════════════════ -->
+<div class="card theme-amber">
+    <div class="card-header">
+        <div class="icon">💼</div>
+        <h2>Work Experience</h2>
     </div>
-
-    <div class="half">
-        <label>Current Employer</label>
-        <input id="current-employer" />
+    <div class="card-body">
+        <div class="form-grid">
+            <div>
+                <label>Total Years of Experience</label>
+                <input id="total-experience" placeholder="e.g. 5 years" />
+            </div>
+            <div>
+                <label>Current Employer</label>
+                <input id="current-employer" />
+            </div>
+            <div>
+                <label>Current Position / Title</label>
+                <input id="current-position" />
+            </div>
+            <div>
+                <label>Industry</label>
+                <input id="industry" />
+            </div>
+            <div class="full">
+                <label>Experience Summary</label>
+                <textarea id="experience-summary" rows="3" placeholder="Brief overview of professional background…"></textarea>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="half">
-        <label>Current Position</label>
-        <input id="current-position" />
+<!-- ══════════════════════════════════
+     MOTIVATION + AI REWRITER
+══════════════════════════════════ -->
+<div class="card theme-teal">
+    <div class="card-header">
+        <div class="icon">✍️</div>
+        <h2>Motivation &amp; Background</h2>
     </div>
+    <div class="card-body">
+        <div class="form-grid">
+            <div class="full">
+                <label>Applicant's Statement</label>
+                <textarea id="details" rows="5" placeholder="Paste or type the applicant's motivation / personal statement here…"></textarea>
+            </div>
+        </div>
 
-    <div class="half">
-        <label>Industry</label>
-        <input id="industry" />
+        <div style="margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button type="button" id="ai-button" class="btn btn-teal">✦ Rewrite using AI</button>
+            <span id="ai-status" style="font-size:.82rem; color:var(--grey-600);"></span>
+        </div>
+
+        <div style="margin-top:14px;">
+            <div class="section-divider">AI Suggested Rewrite</div>
+            <div id="ai-output"></div>
+        </div>
+
+        <div style="margin-top:10px;">
+            <button type="button" id="copy-button" class="btn btn-outline">⎘ Copy to Final Notes</button>
+        </div>
+
+        <div class="form-grid" style="margin-top:16px;">
+            <div class="full">
+                <label>Internal Notes <span style="font-weight:400;text-transform:none;color:var(--grey-400)">(Admissions Team)</span></label>
+                <textarea id="final-notes" rows="3" placeholder="Internal comments, flags or AI notes…"></textarea>
+            </div>
+        </div>
     </div>
+</div>
 
-    <label>Experience Summary</label>
-    <textarea id="experience-summary" rows="3"></textarea>
-</fieldset>
+</main>
 
-<!-- ================================
-     MOTIVATION + AI TEXT IMPROVER
-================================ -->
-<fieldset>
-    <legend>Motivation & Background</legend>
-
-    <label>Applicant’s Motivation / Background Statement</label>
-    <textarea id="details" rows="4"></textarea>
-
-    <button type="button" id="ai-button" class="small-button">Rewrite using AI</button>
-    <div id="ai-status" class="note"></div>
-
-    <h4>AI Suggested Rewrite</h4>
-    <div id="ai-output"></div>
-
-    <button type="button" id="copy-button" class="small-button">Copy to Final Notes</button>
-
-    <label>Internal Notes (AI + Admissions Team)</label>
-    <textarea id="final-notes" rows="3"></textarea>
-</fieldset>
-
-<!-- ================================
+<!-- ══════════════════════════════════
      JAVASCRIPT
-================================ -->
+══════════════════════════════════ -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-    // Upload elements
     const dropZone     = document.getElementById("drop-zone");
     const fileInput    = document.getElementById("file-input");
-    const fileList     = document.getElementById("file-list");
+    const fileListEl   = document.getElementById("file-list");
     const uploadButton = document.getElementById("upload-button");
-    const folderStatus  = document.getElementById("folder-status");
-    const folderMetrics = document.getElementById("folder-metrics");
-    const folderFiles   = document.getElementById("folder-files");
+    const clearButton  = document.getElementById("clear-button");
+    const statusBox    = document.getElementById("status-box");
+    const progressWrap = document.getElementById("progress-wrap");
+    const progressFill = document.getElementById("progress-fill");
+    const progressLabel= document.getElementById("progress-label");
+    const metricsRow   = document.getElementById("metrics-row");
+    const fileStatsEl  = document.getElementById("file-stats");
 
     let selectedFiles = [];
 
-    // Click anywhere in drop zone to open picker
+    // ── Drop zone interaction ──
     dropZone.addEventListener("click", () => fileInput.click());
-
-    // Drag-and-drop
-    dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
+    dropZone.addEventListener("dragover",  e => { e.preventDefault(); dropZone.classList.add("dragover"); });
     dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
     dropZone.addEventListener("drop", e => {
         e.preventDefault();
         dropZone.classList.remove("dragover");
         addFiles(Array.from(e.dataTransfer.files));
     });
-
     fileInput.addEventListener("change", () => addFiles(Array.from(fileInput.files)));
 
     function addFiles(newFiles) {
         newFiles.forEach(f => {
             if (!selectedFiles.find(x => x.name === f.name)) selectedFiles.push(f);
         });
-        renderFileList();
+        renderFileChips();
         uploadButton.disabled = selectedFiles.length === 0;
+        clearButton.style.display = selectedFiles.length > 0 ? "inline-flex" : "none";
     }
 
-    function renderFileList() {
-        fileList.innerHTML = selectedFiles.map((f, i) =>
-            `<li>📄 ${f.name} <span style="color:#888">(${(f.size/1024).toFixed(1)} KB)</span>
-             <a href="#" style="color:red;margin-left:8px;font-size:0.8em;" data-i="${i}">remove</a></li>`
+    function renderFileChips() {
+        fileListEl.innerHTML = selectedFiles.map((f, i) => `
+            <span class="file-chip">
+                📄 ${f.name}
+                <span style="color:var(--grey-400)">${(f.size/1024).toFixed(0)} KB</span>
+                <button class="remove" data-i="${i}" title="Remove">×</button>
+            </span>`
         ).join("");
-        fileList.querySelectorAll("a[data-i]").forEach(a =>
-            a.addEventListener("click", e => {
-                e.preventDefault();
-                selectedFiles.splice(+a.dataset.i, 1);
-                renderFileList();
+        fileListEl.querySelectorAll("button.remove").forEach(btn =>
+            btn.addEventListener("click", () => {
+                selectedFiles.splice(+btn.dataset.i, 1);
+                renderFileChips();
                 uploadButton.disabled = selectedFiles.length === 0;
+                clearButton.style.display = selectedFiles.length > 0 ? "inline-flex" : "none";
             })
         );
     }
 
-    // ============================
-    // Upload & analyse handler
-    // ============================
+    clearButton.addEventListener("click", () => {
+        selectedFiles = [];
+        renderFileChips();
+        uploadButton.disabled = true;
+        clearButton.style.display = "none";
+        fileInput.value = "";
+    });
+
+    function showStatus(type, html) {
+        const icons = { info:"ℹ️", success:"✅", error:"❌", warning:"⚠️" };
+        statusBox.className = `status-box show ${type}`;
+        statusBox.innerHTML = `<span>${icons[type]}</span><span>${html}</span>`;
+    }
+
+    function animateProgress(stages) {
+        progressWrap.classList.add("show");
+        let i = 0;
+        function next() {
+            if (i >= stages.length) return;
+            progressLabel.textContent = stages[i].label;
+            progressFill.style.width  = stages[i].pct + "%";
+            setTimeout(next, stages[i].ms);
+            i++;
+        }
+        next();
+    }
+
+    // ── Upload & analyse ──
     uploadButton.addEventListener("click", async () => {
-        if (selectedFiles.length === 0) return;
+        if (!selectedFiles.length) return;
 
         uploadButton.disabled = true;
-        uploadButton.textContent = "Analysing…";
-        folderStatus.textContent = "Uploading files and running AI extraction…";
-        folderMetrics.textContent = "";
-        folderFiles.textContent = "";
+        uploadButton.textContent = "⏳ Analysing…";
+        statusBox.className = "status-box";
+        metricsRow.innerHTML = "";
+        fileStatsEl.className = "file-stats";
+        document.getElementById("evidence-panel").style.display = "none";
+
+        animateProgress([
+            { label: "Uploading files…",          pct: 15, ms: 600 },
+            { label: "Extracting text…",           pct: 35, ms: 700 },
+            { label: "Building semantic index…",   pct: 60, ms: 900 },
+            { label: "Retrieving evidence…",       pct: 80, ms: 600 },
+            { label: "Running AI extraction…",     pct: 95, ms: 2000 },
+        ]);
 
         const formData = new FormData();
         selectedFiles.forEach(f => formData.append("files", f));
@@ -345,100 +712,119 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch("/upload-assist", { method: "POST", body: formData });
             const data = await response.json();
 
+            progressFill.style.width = "100%";
+            setTimeout(() => progressWrap.classList.remove("show"), 600);
+
             if (data.error) {
-                folderStatus.textContent = "Error: " + data.error;
+                showStatus("error", data.error);
             } else {
-                folderStatus.textContent = "✓ Form auto-filled from uploaded documents. Review and correct as needed.";
+                showStatus("success", "Form auto-filled from uploaded documents. Review each field and correct if needed.");
             }
 
-            if (data.elapsed_seconds) {
-                folderMetrics.textContent = `Processing time: ${data.elapsed_seconds.toFixed(2)} seconds`;
+            // Metrics pills
+            if (data.elapsed_seconds || data.files) {
+                let pills = "";
+                if (data.elapsed_seconds) pills += `<span class="metric-pill">⏱ <strong>${data.elapsed_seconds.toFixed(1)}s</strong> processing</span>`;
+                if (data.files)           pills += `<span class="metric-pill">📄 <strong>${data.files.length}</strong> file(s)</span>`;
+                const readable = (data.files || []).filter(f => f.had_text).length;
+                pills += `<span class="metric-pill">✅ <strong>${readable}</strong> readable</span>`;
+                metricsRow.innerHTML = pills;
             }
 
-            if (Array.isArray(data.files)) {
-                folderFiles.textContent = "Files processed:\n" + data.files.map(f =>
-                    `• ${f.filename}  —  ` + (f.had_text ? `${f.chars} chars extracted` : "⚠ no text (image-only PDF?)")
-                ).join("\n");
+            // File stats
+            if (Array.isArray(data.files) && data.files.length) {
+                fileStatsEl.innerHTML = data.files.map(f => `
+                    <div class="file-stat-row">
+                        <span class="stat-dot ${f.had_text ? 'ok' : 'warn'}"></span>
+                        <span class="stat-name">${f.filename}</span>
+                        <span class="stat-info">${f.had_text ? f.chars.toLocaleString() + " chars" : "⚠ no text extracted"}</span>
+                    </div>`).join("");
+                fileStatsEl.className = "file-stats show";
             }
 
+            // Fill form fields
             const fill = (id, val) => { if (val) document.getElementById(id).value = val; };
-            fill("name",                   data.name);
-            fill("dob",                    data.date_of_birth);
-            fill("nationality",            data.nationality);
-            fill("email",                  data.email);
-            fill("phone",                  data.phone);
-            fill("address-line1",          data.address_line1);
-            fill("address-line2",          data.address_line2);
-            fill("city",                   data.city);
-            fill("state",                  data.state_region);
-            fill("country",                data.country);
-            fill("preferred-contact",      data.preferred_contact);
-            fill("level-of-study",         data.level_of_study);
-            fill("programme",              data.programme_interest);
-            fill("study-mode",             data.study_mode);
-            fill("intake",                 data.intake);
-            fill("highest-qualification",  data.highest_qualification);
-            fill("highest-institution",    data.highest_institution);
-            fill("field-of-study",         data.field_of_study);
-            fill("graduation-year",        data.graduation_year);
-            fill("grade",                  data.grade);
-            fill("other-qualifications",   data.other_qualifications);
-            fill("total-experience",       data.total_experience);
-            fill("current-employer",       data.current_employer);
-            fill("current-position",       data.current_position);
-            fill("industry",               data.industry);
-            fill("experience-summary",     data.experience_summary);
-            fill("details",                data.background_statement);
-            fill("final-notes",            data.ai_notes);
+            fill("name",                  data.name);
+            fill("dob",                   data.date_of_birth);
+            fill("nationality",           data.nationality);
+            fill("email",                 data.email);
+            fill("phone",                 data.phone);
+            fill("address-line1",         data.address_line1);
+            fill("address-line2",         data.address_line2);
+            fill("city",                  data.city);
+            fill("state",                 data.state_region);
+            fill("country",               data.country);
+            fill("preferred-contact",     data.preferred_contact);
+            fill("level-of-study",        data.level_of_study);
+            fill("programme",             data.programme_interest);
+            fill("study-mode",            data.study_mode);
+            fill("intake",                data.intake);
+            fill("highest-qualification", data.highest_qualification);
+            fill("highest-institution",   data.highest_institution);
+            fill("field-of-study",        data.field_of_study);
+            fill("graduation-year",       data.graduation_year);
+            fill("grade",                 data.grade);
+            fill("other-qualifications",  data.other_qualifications);
+            fill("total-experience",      data.total_experience);
+            fill("current-employer",      data.current_employer);
+            fill("current-position",      data.current_position);
+            fill("industry",              data.industry);
+            fill("experience-summary",    data.experience_summary);
+            fill("details",               data.background_statement);
+            fill("final-notes",           data.ai_notes);
 
-            // Evidence panel
-            const evidencePanel = document.getElementById("evidence-panel");
-            const chunksDiv     = document.getElementById("retrieved-chunks");
-            if (Array.isArray(data.retrieved_chunks) && data.retrieved_chunks.length > 0) {
-                chunksDiv.innerHTML = data.retrieved_chunks.map((chunk, i) =>
-                    `<div style="background:#f0f4ff;border-left:3px solid #1a56a0;padding:8px 12px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace;">` +
-                    `<strong>Passage ${i+1}</strong>\n${chunk}</div>`
+            // Evidence chunks
+            if (Array.isArray(data.retrieved_chunks) && data.retrieved_chunks.length) {
+                const panel  = document.getElementById("evidence-panel");
+                const chunks = document.getElementById("retrieved-chunks");
+                chunks.innerHTML = data.retrieved_chunks.map((c, i) =>
+                    `<div class="chunk-card"><div class="chunk-label">Passage ${i+1}</div>${c}</div>`
                 ).join("");
-                evidencePanel.style.display = "block";
+                panel.style.display = "block";
+                panel.open = false;
             }
 
         } catch (err) {
-            folderStatus.textContent = "Network error: " + err.message;
+            progressWrap.classList.remove("show");
+            showStatus("error", "Network error: " + err.message);
         } finally {
             uploadButton.disabled = false;
-            uploadButton.textContent = "Analyse & Auto-Fill Form";
+            uploadButton.textContent = "✦ Analyse & Auto-Fill Form";
         }
     });
 
-    // ============================
-    // AI Rewriting Tool
-    // ============================
-    const detailsTextarea  = document.getElementById("details");
-    const finalNotesTextarea = document.getElementById("final-notes");
-    const aiButton  = document.getElementById("ai-button");
-    const aiStatus  = document.getElementById("ai-status");
-    const aiOutput  = document.getElementById("ai-output");
+    // ── AI rewriter ──
+    const aiButton   = document.getElementById("ai-button");
+    const aiStatus   = document.getElementById("ai-status");
+    const aiOutput   = document.getElementById("ai-output");
     const copyButton = document.getElementById("copy-button");
 
     aiButton.addEventListener("click", async () => {
-        const text = detailsTextarea.value.trim();
-        if (!text) { aiStatus.textContent = "Please enter text first."; return; }
+        const text = document.getElementById("details").value.trim();
+        if (!text) { aiStatus.textContent = "Please enter a statement first."; return; }
 
-        aiStatus.textContent = "Contacting AI…";
+        aiButton.disabled = true;
+        aiStatus.textContent = "Rewriting…";
         aiOutput.textContent = "";
 
-        const response = await fetch("/ai-assist", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ raw_text: text })
-        });
-        const data = await response.json();
-        aiOutput.textContent = data.improved_text || "";
-        aiStatus.textContent = "AI rewrite ready.";
+        try {
+            const res  = await fetch("/ai-assist", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ raw_text: text })
+            });
+            const data = await res.json();
+            aiOutput.textContent = data.improved_text || "";
+            aiStatus.textContent = "✓ Rewrite ready";
+        } catch(e) {
+            aiStatus.textContent = "Error: " + e.message;
+        } finally {
+            aiButton.disabled = false;
+        }
     });
 
     copyButton.addEventListener("click", () => {
-        finalNotesTextarea.value = aiOutput.textContent;
+        document.getElementById("final-notes").value = aiOutput.textContent;
     });
 });
 </script>
