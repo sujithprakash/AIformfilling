@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>University Application Form (AI-Assisted)</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f8f9fa;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        fieldset {
+            border: 1px solid #ccc;
+            padding: 20px;
+            background: #fff;
+            margin-bottom: 25px;
+        }
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        .half {
+            width: 48%;
+            display: inline-block;
+        }
+        .note {
+            margin-top: 10px;
+            color: #555;
+            white-space: pre-wrap;
+        }
+        .small-button {
+            margin-top: 12px;
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+        #ai-output {
+            border: 1px dashed #666;
+            background: #eef2f7;
+            padding: 10px;
+            min-height: 80px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>University Application Form (AI-Assisted)</h1>
+<p>This form can be auto-filled from a folder containing the applicant’s CV and scanned academic certificates.</p>
+
+<!-- ================================
+     STEP 1 — FOLDER SCAN
+================================ -->
+<fieldset>
+    <legend>Step 1 — Scan Student Folder (CV + Certificates)</legend>
+
+    <label for="folder-path">Student Folder Path on This Computer</label>
+    <input id="folder-path" placeholder="E.g. D:\Students\Sujith01" />
+
+    <button type="button" id="folder-fill-button" class="small-button">
+        Scan Folder & Auto-Fill Form
+    </button>
+
+    <div id="folder-status" class="note"></div>
+    <div id="folder-metrics" class="note"></div>
+    <pre id="folder-files" class="note"></pre>
+
+    <p class="note">
+        The system will read all PDF, DOCX and TXT files in the folder, combine the text and ask the AI
+        to extract relevant details. Image-only scanned PDFs may require OCR.
+    </p>
+</fieldset>
+
+<!-- ================================
+     PERSONAL DETAILS
+================================ -->
+<fieldset>
+    <legend>Personal Details</legend>
+
+    <div class="half">
+        <label>Full Name</label>
+        <input id="name" />
+    </div>
+
+    <div class="half">
+        <label>Date of Birth</label>
+        <input id="dob" type="date" />
+    </div>
+
+    <div class="half">
+        <label>Gender</label>
+        <select id="gender">
+            <option value="">Please select</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+        </select>
+    </div>
+
+    <div class="half">
+        <label>Nationality</label>
+        <input id="nationality" />
+    </div>
+</fieldset>
+
+<!-- ================================
+     CONTACT DETAILS
+================================ -->
+<fieldset>
+    <legend>Contact Details</legend>
+
+    <div class="half">
+        <label>Email</label>
+        <input id="email" />
+    </div>
+
+    <div class="half">
+        <label>Mobile / Phone</label>
+        <input id="phone" />
+    </div>
+
+    <label>Address Line 1</label>
+    <input id="address-line1" />
+
+    <label>Address Line 2 (optional)</label>
+    <input id="address-line2" />
+
+    <div class="half">
+        <label>City</label>
+        <input id="city" />
+    </div>
+
+    <div class="half">
+        <label>State / Emirate / Region</label>
+        <input id="state" />
+    </div>
+
+    <div class="half">
+        <label>Country of Residence</label>
+        <input id="country" />
+    </div>
+
+    <div class="half">
+        <label>Preferred Contact Method</label>
+        <select id="preferred-contact">
+            <option value="">Please select</option>
+            <option>Email</option>
+            <option>Phone</option>
+            <option>WhatsApp</option>
+        </select>
+    </div>
+</fieldset>
+
+<!-- ================================
+     PROGRAMME CHOICE
+================================ -->
+<fieldset>
+    <legend>Programme Choice</legend>
+
+    <div class="half">
+        <label>Level of Study</label>
+        <input id="level-of-study" />
+    </div>
+
+    <div class="half">
+        <label>Programme</label>
+        <input id="programme" />
+    </div>
+
+    <div class="half">
+        <label>Preferred Study Mode</label>
+        <input id="study-mode" />
+    </div>
+
+    <div class="half">
+        <label>Preferred Intake</label>
+        <input id="intake" />
+    </div>
+</fieldset>
+
+<!-- ================================
+     QUALIFICATIONS
+================================ -->
+<fieldset>
+    <legend>Educational Qualifications</legend>
+
+    <label>Highest Qualification</label>
+    <input id="highest-qualification" />
+
+    <label>University / Institution</label>
+    <input id="highest-institution" />
+
+    <label>Field of Study</label>
+    <input id="field-of-study" />
+
+    <div class="half">
+        <label>Graduation Year</label>
+        <input id="graduation-year" />
+    </div>
+
+    <div class="half">
+        <label>Grade / Classification</label>
+        <input id="grade" />
+    </div>
+
+    <label>Other Qualifications</label>
+    <textarea id="other-qualifications" rows="2"></textarea>
+</fieldset>
+
+<!-- ================================
+     EXPERIENCE
+================================ -->
+<fieldset>
+    <legend>Work Experience</legend>
+
+    <div class="half">
+        <label>Total Years of Experience</label>
+        <input id="total-experience" />
+    </div>
+
+    <div class="half">
+        <label>Current Employer</label>
+        <input id="current-employer" />
+    </div>
+
+    <div class="half">
+        <label>Current Position</label>
+        <input id="current-position" />
+    </div>
+
+    <div class="half">
+        <label>Industry</label>
+        <input id="industry" />
+    </div>
+
+    <label>Experience Summary</label>
+    <textarea id="experience-summary" rows="3"></textarea>
+</fieldset>
+
+<!-- ================================
+     MOTIVATION + AI TEXT IMPROVER
+================================ -->
+<fieldset>
+    <legend>Motivation & Background</legend>
+
+    <label>Applicant’s Motivation / Background Statement</label>
+    <textarea id="details" rows="4"></textarea>
+
+    <button type="button" id="ai-button" class="small-button">Rewrite using AI</button>
+    <div id="ai-status" class="note"></div>
+
+    <h4>AI Suggested Rewrite</h4>
+    <div id="ai-output"></div>
+
+    <button type="button" id="copy-button" class="small-button">Copy to Final Notes</button>
+
+    <label>Internal Notes (AI + Admissions Team)</label>
+    <textarea id="final-notes" rows="3"></textarea>
+</fieldset>
+
+<!-- ================================
+     JAVASCRIPT
+================================ -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Folder scan elements
+    const folderPathInput = document.getElementById("folder-path");
+    const folderFillButton = document.getElementById("folder-fill-button");
+    const folderStatus = document.getElementById("folder-status");
+    const folderMetrics = document.getElementById("folder-metrics");
+    const folderFiles = document.getElementById("folder-files");
+
+    // Form fields
+    const nameInput = document.getElementById("name");
+    const dobInput = document.getElementById("dob");
+    const nationalityInput = document.getElementById("nationality");
+    const emailInput = document.getElementById("email");
+    const phoneInput = document.getElementById("phone");
+    const addressLine1Input = document.getElementById("address-line1");
+    const addressLine2Input = document.getElementById("address-line2");
+    const cityInput = document.getElementById("city");
+    const stateInput = document.getElementById("state");
+    const countryInput = document.getElementById("country");
+    const preferredContactInput = document.getElementById("preferred-contact");
+
+    const levelOfStudyInput = document.getElementById("level-of-study");
+    const programmeInput = document.getElementById("programme");
+    const studyModeInput = document.getElementById("study-mode");
+    const intakeInput = document.getElementById("intake");
+
+    const highestQualificationInput = document.getElementById("highest-qualification");
+    const highestInstitutionInput = document.getElementById("highest-institution");
+    const fieldOfStudyInput = document.getElementById("field-of-study");
+    const graduationYearInput = document.getElementById("graduation-year");
+    const gradeInput = document.getElementById("grade");
+    const otherQualificationsInput = document.getElementById("other-qualifications");
+
+    const totalExperienceInput = document.getElementById("total-experience");
+    const currentEmployerInput = document.getElementById("current-employer");
+    const currentPositionInput = document.getElementById("current-position");
+    const industryInput = document.getElementById("industry");
+    const experienceSummaryInput = document.getElementById("experience-summary");
+
+    const detailsTextarea = document.getElementById("details");
+    const finalNotesTextarea = document.getElementById("final-notes");
+
+    const aiButton = document.getElementById("ai-button");
+    const aiStatus = document.getElementById("ai-status");
+    const aiOutput = document.getElementById("ai-output");
+    const copyButton = document.getElementById("copy-button");
+
+    // ============================
+    // Folder Scan Handler
+    // ============================
+    folderFillButton.addEventListener("click", async () => {
+        const folderPath = folderPathInput.value.trim();
+        console.log("Scanning:", folderPath);
+
+        folderStatus.textContent = "Scanning folder and contacting AI...";
+        folderMetrics.textContent = "";
+        folderFiles.textContent = "";
+
+        const response = await fetch("/folder-assist", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ folder_path: folderPath })
+        });
+
+        const data = await response.json();
+        console.log("Folder-assist:", data);
+
+        if (data.error) {
+            folderStatus.textContent = "Error: " + data.error;
+        } else {
+            folderStatus.textContent = "Form updated from folder contents.";
+        }
+
+        if (data.elapsed_seconds) {
+            folderMetrics.textContent = "Execution time: " +
+                data.elapsed_seconds.toFixed(2) + " seconds";
+        }
+
+        if (Array.isArray(data.files)) {
+            folderFiles.textContent = "Files scanned:\n" +
+                data.files.map(f =>
+                    `• ${f.filename} (${f.extension}, ` +
+                    (f.had_text ? `${f.chars} chars` : "no text") +
+                    `)`
+                ).join("\n");
+        }
+
+        if (data.name) nameInput.value = data.name;
+        if (data.date_of_birth) dobInput.value = data.date_of_birth;
+        if (data.nationality) nationalityInput.value = data.nationality;
+        if (data.email) emailInput.value = data.email;
+        if (data.phone) phoneInput.value = data.phone;
+        if (data.address_line1) addressLine1Input.value = data.address_line1;
+        if (data.address_line2) addressLine2Input.value = data.address_line2;
+        if (data.city) cityInput.value = data.city;
+        if (data.state_region) stateInput.value = data.state_region;
+        if (data.country) countryInput.value = data.country;
+        if (data.preferred_contact) preferredContactInput.value = data.preferred_contact;
+
+        if (data.level_of_study) levelOfStudyInput.value = data.level_of_study;
+        if (data.programme_interest) programmeInput.value = data.programme_interest;
+        if (data.study_mode) studyModeInput.value = data.study_mode;
+        if (data.intake) intakeInput.value = data.intake;
+
+        if (data.highest_qualification) highestQualificationInput.value = data.highest_qualification;
+        if (data.highest_institution) highestInstitutionInput.value = data.highest_institution;
+        if (data.field_of_study) fieldOfStudyInput.value = data.field_of_study;
+        if (data.graduation_year) graduationYearInput.value = data.graduation_year;
+        if (data.grade) gradeInput.value = data.grade;
+        if (data.other_qualifications) otherQualificationsInput.value = data.other_qualifications;
+
+        if (data.total_experience) totalExperienceInput.value = data.total_experience;
+        if (data.current_employer) currentEmployerInput.value = data.current_employer;
+        if (data.current_position) currentPositionInput.value = data.current_position;
+        if (data.industry) industryInput.value = data.industry;
+        if (data.experience_summary) experienceSummaryInput.value = data.experience_summary;
+
+        if (data.background_statement) detailsTextarea.value = data.background_statement;
+        if (data.ai_notes) finalNotesTextarea.value = data.ai_notes;
+    });
+
+    // ============================
+    // AI Rewriting Tool
+    // ============================
+    aiButton.addEventListener("click", async () => {
+        const text = detailsTextarea.value.trim();
+        if (!text) {
+            aiStatus.textContent = "Please enter text first.";
+            return;
+        }
+
+        aiStatus.textContent = "Contacting AI...";
+        aiOutput.textContent = "";
+
+        const response = await fetch("/ai-assist", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ raw_text: text })
+        });
+
+        const data = await response.json();
+        aiOutput.textContent = data.improved_text || "";
+        aiStatus.textContent = "AI rewrite ready.";
+    });
+
+    copyButton.addEventListener("click", () => {
+        finalNotesTextarea.value = aiOutput.textContent;
+    });
+});
+</script>
+
+</body>
+</html>
